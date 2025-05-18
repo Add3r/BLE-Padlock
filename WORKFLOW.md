@@ -12,7 +12,9 @@ We split the attack into two distinct phases:
    Capture BLE traffic between a legitimate smartphone app and the padlock using **Ubertooth**.
 
 2. **Active BLE Exploitation**  
-   Use **Python + Bleak** to recreate the authentication and unlock commands and send them directly to the device.
+   Use **Python + Bleak** to recreate the authentication and unlock commands and send them directly to the device. 
+
+   > needs BLE dongle 
 
 ---
 
