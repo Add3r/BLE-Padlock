@@ -1,0 +1,32 @@
+exploit/unlock_config.json
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# BLE PoC configuration (contains MAC + UUID)
+unlock_config.json
+
+# BLE capture data
+*.pcap
+*.pcapng
+
+# Logs and temp files
+*.log
+*.bak
+*.swp
+.DS_Store
+
+# Editor-specific
+.vscode/
+.idea/
+*.code-workspace
+
+# System mounts (just in case)
+mnt/
