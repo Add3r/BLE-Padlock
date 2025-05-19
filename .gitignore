@@ -1,4 +1,3 @@
-exploit/unlock_config.json
 # Python artifacts
 __pycache__/
 *.pyc
