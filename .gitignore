@@ -29,3 +29,6 @@ unlock_config.json
 
 # System mounts (just in case)
 mnt/
+
+# BLE unlock config (DO NOT TRACK)
+/exploit/unlock_config.json
