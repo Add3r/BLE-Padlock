@@ -11,6 +11,7 @@ RES = "\033[0m"
 device = input('Enter Target Lock MAC address [Default: 11:22:33:44:55:66]: ')
 if not device:
     device = "11:22:33:44:55:66"
+    # exploitable padlock = 20:C3:8F:D6:D7:68
 
 # Char-write-req values
 # 0x0037 - GATT code for unlocking the lock
